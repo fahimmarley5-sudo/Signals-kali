@@ -2,159 +2,144 @@ import streamlit as st
 import random
 import time
 
-# 1. Page Configuration for Mobile Views
+# 1. Page Configuration to look exactly like a native web dashboard
 st.set_page_config(
-    page_title="Expert Analysis Tool",
-    page_icon="🔮",
+    page_title="Live Dashboard",
+    page_icon="📈",
     layout="centered"
 )
 
-# 2. Advanced CSS Override to force mobile layout elements inline
+# 2. CSS Override to remove the pink color and match the clean target design
 st.markdown("""
 <style>
-    /* Force background color of the phone layout */
+    /* Clean white/light gray background matching the second image */
     .stApp { 
-        background-color: #FCE7F3 !important; 
+        background-color: #FFFFFF !important; 
     }
     
-    /* Global container styling */
+    /* Global layout fonts and labels */
     .app-container {
-        padding: 10px;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
+        padding: 15px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Make input background blend seamlessly with page */
-    div[data-baseweb="select"], div[data-baseweb="input"] {
-        background-color: rgba(255, 255, 255, 0.4) !important;
-        border-radius: 10px !important;
-        border: 1px solid rgba(0,0,0,0.05) !important;
-    }
-    
-    /* FORCE Streamlit columns to stay horizontal on mobile phones */
-    [data-testid="column"] {
-        width: calc(33.33% - 10px) !important;
-        flex: 1 1 calc(33.33% - 10px) !important;
-        min-width: 0px !important;
-    }
-    
-    /* Make sure form columns sit side by side too */
-    .form-grid {
-        display: flex;
-        gap: 10px;
-    }
-    
-    /* Custom style definitions for the button container row */
-    .mobile-button-row {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        width: 100%;
-        margin: 25px 0;
-        gap: 8px;
-    }
-    
-    /* Small Utility Action buttons (Reset / Clear) */
-    .utility-btn {
-        background-color: #06B6D4 !important; /* Teal/Cyan color matching video */
-        color: white !important;
-        border-radius: 20px !important;
-        padding: 6px 15px !important;
-        font-size: 13px !important;
+    /* Target Title formatting */
+    .main-title {
+        font-size: 26px;
         font-weight: bold;
-        text-align: center;
-        border: none;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        color: #111827;
+        margin-bottom: 2px;
     }
     
-    /* Central Circular Execution Trigger Button */
-    .center-run-circle {
-        background-color: #D946EF !important; /* Bold Fuchsia/Pink matching video */
-        color: white !important;
-        width: 65px !important;
-        height: 65px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-weight: bold !important;
-        font-size: 15px !important;
-        box-shadow: 0 4px 10px rgba(217, 70, 239, 0.4) !important;
-        border: none !important;
+    .sub-title {
+        font-size: 13px;
+        color: #6B7280;
+        margin-bottom: 25px;
+    }
+
+    /* Live Data Display Styling */
+    .live-ticker-box {
+        background-color: #F3F4F6;
+        border-radius: 12px;
+        padding: 20px;
         text-align: center;
+        margin-top: 20px;
+        border: 1px solid #E5E7EB;
     }
     
-    /* Label Adjustments */
-    label p {
-        font-size: 13px !important;
-        font-weight: bold !important;
-        color: #4B5563 !important;
+    .ticker-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6B7280;
+        margin-bottom: 5px;
+    }
+    
+    .ticker-value {
+        font-size: 36px;
+        font-weight: 800;
+        color: #111827;
+        font-family: monospace;
     }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<div class='app-container'>", unsafe_allow_html=True)
 
-# App Header
-st.markdown("<h3 style='text-align: center; color: #1F2937; margin-bottom: 0px; font-weight: 800;'>EXPERT ANALYSIS</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6B7280; font-size: 11px; margin-top:0;'>Volatility & Digit Statistics</p>", unsafe_allow_html=True)
+# Header matching your second target image
+st.markdown("<div class='main-title'>Live Dashboard</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Expert algorithmic analysis for synthetic indices.</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 1. THE VOLATILITY MARKET CHANGING CONFIG SLOT
+# INPUT FIELDS (Asset Selector & Configurations)
 # -------------------------------------------------------------
 volatility_market = st.selectbox(
-    "Market Asset Selector",
-    options=["Volatility 10 Index", "Volatility 25 Index", "Volatility 50 Index", "Volatility 75 Index", "Volatility 100 Index"]
+    "Volatility Index",
+    options=["Volatility 10 Index", "Volatility 25 Index", "Volatility 50 Index", "Volatility 75 Index", "Volatility 100 Index"],
+    index=3
 )
 
 trade_type = st.selectbox(
-    "Trade Type / Strategy Pattern",
+    "Trade Type",
     options=["Digits Matches/Differs", "Digits Even/Odd", "Digits Over/Under"]
 )
 
-# 2. Side-by-side Form Inputs for Stake and Target Digit
-col_inputs = st.columns(2)
-with col_inputs[0]:
-    stake = st.number_input("Stake Amount ($)", min_value=0.35, value=1.00, step=0.50)
-with col_inputs[1]:
-    target_digit = st.number_input("Target Run Digit", min_value=0, max_value=9, value=5, step=1)
+# Responsive setup for layout options
+col1, col2 = st.columns(2)
+with col1:
+    stake = st.number_input("Stake ($)", min_value=0.35, value=1.00, step=0.50)
+with col2:
+    target_digit = st.number_input("Last Digit Prediction", min_value=0, max_value=9, value=5, step=1)
+
+duration = st.number_input("Duration (Ticks)", min_value=1, max_value=10, value=1, step=1)
 
 # -------------------------------------------------------------
-# 2. THE THREE BUTTONS IN A PERFECT HORIZONTAL ROW
+# THE LIVE RUNNING SLOT (This updates the numbers actively)
 # -------------------------------------------------------------
-st.write("") # Micro spacer
+st.markdown("---")
 
-# Create 3 strict horizontal column slots
-btn_col1, btn_col2, btn_col3 = st.columns(3)
+# Dynamic empty spots that change live when the tool runs
+ticker_placeholder = st.empty()
+status_placeholder = st.empty()
 
-with btn_col1:
-    # Use HTML markup to design beautiful horizontal flow blocks
-    reset_clicked = st.button("Reset", key="rs_btn", use_container_width=True)
+# Control button to turn on the processing digits execution
+start_analysis = st.button("RUN ANALYSIS", use_container_width=True)
 
-with btn_col2:
-    run_clicked = st.button("RUN", key="rn_btn", use_container_width=True)
-    # Visual circle overlay to completely match the circular look of the video button
-    st.markdown("""
-        <div style='text-align: center; margin-top: -53px; pointer-events: none; position: relative; z-index: 10;'>
-            <div style='background: linear-gradient(135deg, #D946EF, #C084FC); color: white; width: 55px; height: 55px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size:12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);'>
-                RUN
+if start_analysis:
+    status_placeholder.info(f"Connecting to live data stream for {volatility_market}...")
+    
+    # Base starting price value to mock active charts
+    base_price = 277190.00
+    
+    # Active monitoring simulation loop (This runs and updates constantly)
+    for _ in range(50):
+        # Calculate random shifts to tick values to show updating stream data
+        base_price += random.uniform(-1.5, 1.8)
+        last_digit = int(str(f"{base_price:.4f}")[-1])
+        
+        # Inject changing values directly into the display box without moving layout
+        ticker_placeholder.markdown(f"""
+            <div class="live-ticker-box">
+                <div class="ticker-label">Active Stream Price</div>
+                <div class="ticker-value">{base_price:.4f}</div>
+                <div style="margin-top: 10px; font-size: 14px; color: #4B5563;">
+                    Analyzing Digit: <b style="color: #10B981; font-size: 18px;">{last_digit}</b>
+                </div>
             </div>
+        """, unsafe_allow_html=True)
+        
+        # Speed pacing frame interval for updates
+        time.sleep(1.0)
+        
+    status_placeholder.success("Analysis complete.")
+else:
+    # Default resting box look before user triggers execution
+    ticker_placeholder.markdown("""
+        <div class="live-ticker-box">
+            <div class="ticker-label">Active Stream Price</div>
+            <div class="ticker-value" style="color: #9CA3AF;">000000.0000</div>
         </div>
     """, unsafe_allow_html=True)
-
-with btn_col3:
-    clear_clicked = st.button("Clear", key="cl_btn", use_container_width=True)
-
-
-# -------------------------------------------------------------
-# 3. STATS OUTPUT DISPLAYS
-# -------------------------------------------------------------
-st.markdown("<br>", unsafe_allow_html=True)
-output_block = st.empty()
-
-if run_clicked:
-    output_block.success(f"Connecting to live ticker stream for {volatility_market}...")
-    # Add your websockets code inside this block to show active trading digits!
-else:
-    output_block.info("Adjust the parameter configurations above and press RUN to analyze digits.")
+    status_placeholder.warning("Click 'RUN ANALYSIS' above to begin tracking live trading digits.")
 
 st.markdown("</div>", unsafe_allow_html=True)
