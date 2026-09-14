@@ -92,3 +92,4 @@ fig_trend = px.line(df, x="Tick", y="Price", title=f"{selected_index} Live Analy
 fig_trend.update_layout(height=300)
 st.plotly_chart(fig_trend, use_container_width=True)
 
+
