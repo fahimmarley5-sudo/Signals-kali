@@ -50,7 +50,6 @@ st.markdown("""
         font-weight: bold !important;
         color: #4B5563 !important;
     }
-    /* Stats Box Custom Styles */
     .stat-badge {
         padding: 8px;
         border-radius: 8px;
@@ -68,9 +67,7 @@ st.markdown("<div class='app-container'>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #1F2937; margin-bottom: 2px; font-weight: 800;'>Expert Analysis V4.0</h3>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #6B7280; font-size: 11px; margin-top:0;'>Live Algorithmic Digit Signals Engine</p>", unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# INTERACTIVE SELECTOR SLOTS
-# -------------------------------------------------------------
+# Interactive Selector Slots
 vol_market = st.selectbox(
     "Select Market Index",
     options=["Volatility 10 Index", "Volatility 25 Index", "Volatility 50 Index", "Volatility 75 Index", "Volatility 100 Index"]
@@ -87,15 +84,12 @@ with param_cols:
 with param_cols:
     prediction = st.number_input("Last Digit Target", min_value=0, max_value=9, value=5, step=1)
 
-# -------------------------------------------------------------
-# LIVE STATS HOUSING PLACEHOLDERS
-# -------------------------------------------------------------
 st.markdown("<br>", unsafe_allow_html=True)
 ticker_display = st.empty()
-counter_display = st.empty()  # New placeholder for the live graph/stats
+counter_display = st.empty()
 message_display = st.empty()
 
-# Initialize static look before hitting run
+# Static Idle Look
 ticker_display.markdown("""
     <div class="live-stream-box">
         <div style="font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight:bold; letter-spacing:1px;">Stream Status: Idle</div>
@@ -103,9 +97,6 @@ ticker_display.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# THE ACCURATE HORIZONTAL BUTTON SYSTEM
-# -------------------------------------------------------------
 st.markdown("<br>", unsafe_allow_html=True)
 btn_col1, btn_col2, btn_col3 = st.columns(3)
 
@@ -125,35 +116,26 @@ with btn_col2:
 with btn_col3:
     clear_btn = st.button("Clear", key="sys_clr", use_container_width=True)
 
-# -------------------------------------------------------------
-# ENGINE SYSTEM RUNNING STATE EXECUTION LOOP
-# -------------------------------------------------------------
+# Loop Engine
 if run_btn:
     message_display.warning("Initializing live web stream feed pipeline...")
     time.sleep(0.8)
     
     current_tick = 797120.5500
-    
-    # Track the last 50 digits in a list for frequency analysis
     digit_history = []
     
     for i in range(100):
         current_tick += random.uniform(-2.25, 2.50)
         analyzed_digit = int(str(f"{current_tick:.4f}")[-1])
         
-        # Add to history, maintain length of last 50 ticks
         digit_history.append(analyzed_digit)
         if len(digit_history) > 50:
             digit_history.pop(0)
             
-        # Count frequency of digits 0-9
         counts = {d: digit_history.count(d) for d in range(10)}
-        
-        # Find Hot and Cold digits
         hot_digit = max(counts, key=counts.get)
         cold_digit = min(counts, key=counts.get)
         
-        # Update ticker number display card
         ticker_display.markdown(f"""
             <div class="live-stream-box">
                 <div style="font-size: 11px; text-transform: uppercase; color: #DB2777; font-weight:bold; letter-spacing:1px;">🔴 Streaming Real-Time Digits</div>
@@ -164,15 +146,11 @@ if run_btn:
             </div>
         """, unsafe_allow_html=True)
         
-        # Inject the live analytics table/graph and Hot/Cold recommendations
         with counter_display.container():
             st.markdown("<p style='font-size:12px; font-weight:bold; color:#4B5563; margin-bottom:5px; margin-top:10px;'>📊 Digit Frequency (Last 50 Ticks)</p>", unsafe_allow_html=True)
-            
-            # Simple bar chart using native streamlit
             chart_data = pd.DataFrame(list(counts.values()), index=[str(d) for d in range(10)], columns=["Count"])
             st.bar_chart(chart_data, height=130, use_container_width=True)
             
-            # Advice Badges
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown(f"<div class='stat-badge' style='background-color:#EF4444;'>🔥 Hot (Matches): Digit {hot_digit}</div>", unsafe_allow_html=True)
