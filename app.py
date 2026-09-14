@@ -1,26 +1,26 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Set up page configurations for a clean mobile look
+# Set up clean mobile layout parameters
 st.set_page_config(
     page_title="Expert Analysis V4.0",
     page_icon="📊",
     layout="centered"
 )
 
-# Hide default Streamlit elements for a clean layout
-hide_menu_style = """
+# Style overrides to remove default page padding
+st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .block-container {padding-top: 1rem;}
+    .block-container {padding: 0px; margin: 0px;}
+    iframe {border: none; border-radius: 20px;}
     </style>
-"""
-st.markdown(hide_menu_style, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# Complete code with dropdown menus and real-time data switching
-modern_ui_html = """
+# Fixed Web App Frame Layout
+ui_frame = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,151 +33,123 @@ modern_ui_html = """
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #fff0f3;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
         }
-
         .container {
             width: 100%;
-            max-width: 360px;
+            max-width: 350px;
             background: #ffffff;
             border-radius: 24px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.05);
             text-align: center;
             box-sizing: border-box;
         }
-
         h2 {
-            font-size: 1.3rem;
-            margin: 0 0 15px 0;
+            font-size: 1.2rem;
+            margin: 5px 0 15px 0;
             color: #2b2d42;
         }
-
-        /* Dropdown Selector Styles */
         .selector-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: left;
         }
-
         label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: #4a4e69;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
-
         select {
             width: 100%;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             border: 1px solid #ced4da;
             background-color: #f8f9fa;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #2b2d42;
-            outline: none;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-
         .live-price-box {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             letter-spacing: 1px;
             color: #2b2d42;
-            margin: 15px 0;
+            margin: 12px 0;
         }
-
         .last-digit {
             color: #f72585;
             border-bottom: 3px solid #f72585;
         }
-
-        /* Control Panel Layout */
         .control-panel {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 20px 0;
-            padding: 0 10px;
+            margin: 15px 0;
         }
-
         .side-btn {
             background-color: #4cc9f0;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 16px;
+            padding: 10px 16px;
+            border-radius: 12px;
             font-weight: 700;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 12px rgba(76, 201, 240, 0.3);
+            font-size: 0.8rem;
         }
-
         .side-btn.differ {
             background-color: #4361ee;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
         }
-
         .center-circle {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             background-color: #7209b7;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
-            box-shadow: 0 6px 20px rgba(114, 9, 183, 0.4);
         }
-
         .timer-container {
-            margin-top: 10px;
-            font-size: 0.85rem;
+            margin-top: 5px;
+            font-size: 0.8rem;
             color: #4a4e69;
             font-weight: 600;
             background: #f8f9fa;
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: 5px 12px;
+            border-radius: 15px;
             display: inline-block;
         }
-
         #countdown-number {
             color: #f72585;
-            font-weight: 700;
         }
-
-        /* Statistical Grid Layout */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            margin-top: 20px;
+            gap: 4px;
+            margin-top: 15px;
         }
-
         .stat-bar-container {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: bold;
             background: #f1f3f5;
-            padding: 6px 0;
-            border-radius: 8px;
+            padding: 4px 0;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-
         .stat-fill {
-            width: 8px;
-            height: 30px;
+            width: 6px;
+            height: 25px;
             background: #dee2e6;
-            margin-top: 4px;
-            border-radius: 4px;
+            margin-top: 3px;
+            border-radius: 2px;
             position: relative;
             overflow: hidden;
         }
-
         .stat-progress {
             position: absolute;
             bottom: 0;
@@ -185,7 +157,7 @@ modern_ui_html = """
             width: 100%;
             background: #7209b7;
             height: 0%;
-            transition: height 0.3s ease;
+            transition: height 0.2s ease;
         }
     </style>
 </head>
@@ -194,9 +166,8 @@ modern_ui_html = """
     <div class="container">
         <h2>Expert Analysis V4.0</h2>
         
-        <!-- Options Selection Menus -->
         <div class="selector-group">
-            <label for="market-select">Select Market Index</label>
+            <label>Select Market Index</label>
             <select id="market-select">
                 <option value="1HZ10V">Volatility 10 (1s) Index</option>
                 <option value="1HZ25V">Volatility 25 (1s) Index</option>
@@ -210,7 +181,7 @@ modern_ui_html = """
                 <option value="R_100">Volatility 100 Index</option>
             </select>
 
-            <label for="trade-select">Trade Type / Strategy Partner</label>
+            <label>Trade Type</label>
             <select id="trade-select">
                 <option value="matches_differs" selected>Digits Matches/Differs</option>
                 <option value="even_odd">Digits Even/Odd</option>
@@ -218,24 +189,18 @@ modern_ui_html = """
             </select>
         </div>
         
-        <!-- Live Stream Display -->
-        <div class="live-price-box" id="price-display">
-            000000.<span class="last-digit" id="digit-display">0</span>
-        </div>
+        <div class="live-price-box" id="price-display">0.00</div>
 
-        <!-- The Layout Match/Differ UI with Central Circle -->
         <div class="control-panel">
             <button class="side-btn">MATCH</button>
             <div class="center-circle" id="predicted-digit">-</div>
             <button class="side-btn differ">DIFFER</button>
         </div>
 
-        <!-- Timer Countdown -->
         <div class="timer-container">
-            Next prediction in: <span id="countdown-number">5s</span>
+            Next update in: <span id="countdown-number">5s</span>
         </div>
 
-        <!-- Dynamic Frequency Bars -->
         <div class="stats-grid" id="stats-output"></div>
     </div>
 
@@ -246,7 +211,6 @@ modern_ui_html = """
         let timeLeft = 5;
         let currentSymbol = "1HZ100V";
 
-        // Build stats graph containers
         const statsOutput = document.getElementById('stats-output');
         for (let i = 0; i < 10; i++) {
             statsOutput.innerHTML += `
@@ -257,13 +221,8 @@ modern_ui_html = """
             `;
         }
 
-        // Function to handle the live WebSocket connections
         function connectWebSocket(symbol) {
-            if (ws) {
-                ws.close();
-            }
-
-            // Clear old data when shifting indexes
+            if (ws) ws.close();
             digitCounts = Array(10).fill(0);
             totalTicks = 0;
 
@@ -285,7 +244,6 @@ modern_ui_html = """
                     digitCounts[parseInt(lastDigit)]++;
                     totalTicks++;
                     
-                    // Reposition bar charts live
                     for (let i = 0; i < 10; i++) {
                         const percentage = (digitCounts[i] / totalTicks) * 100;
                         document.getElementById(`bar-${i}`).style.height = `${Math.min(percentage * 4, 100)}%`;
@@ -294,22 +252,17 @@ modern_ui_html = """
             };
         }
 
-        // Listen for user changes on the Volatility Dropdown menu
         document.getElementById('market-select').addEventListener('change', (e) => {
             currentSymbol = e.target.value;
             connectWebSocket(currentSymbol);
         });
 
-        // Initialize connection on start
         connectWebSocket(currentSymbol);
 
-        // Real-time Countdown Timer loop
         setInterval(() => {
             if (timeLeft <= 0) {
                 timeLeft = 5;
-                // Formulate algorithmic prediction
-                const analyticalDigit = Math.floor(Math.random() * 10);
-                document.getElementById('predicted-digit').innerText = analyticalDigit;
+                document.getElementById('predicted-digit').innerText = Math.floor(Math.random() * 10);
             } else {
                 timeLeft--;
             }
@@ -321,5 +274,5 @@ modern_ui_html = """
 </html>
 """
 
-# Embed the UI cleanly into Streamlit
-
+# Render with safe explicit sizing for small smartphone browsers
+components.html(ui_frame, height=580, scrolling=True)
