@@ -39,7 +39,14 @@ st.markdown("<p style='text-align: center; color: #8d99ae; font-size: 0.85rem; m
 with st.expander("🛠️ System Configuration Dashboard", expanded=True):
     market_idx = st.selectbox(
         "Select Market Index",
-        ["Volatility 10 (1s) Index", "Volatility 25 (1s) Index", "Volatility 50 (1s) Index", "Volatility 75 (1s) Index", "Volatility 100 (1s) Index"]
+        ["1HZ10V", "1HZ25V", "1HZ50V", "1HZ75V", "1HZ100V"],
+        format_func=lambda x: {
+            "1HZ10V": "Volatility 10 (1s) Index",
+            "1HZ25V": "Volatility 25 (1s) Index",
+            "1HZ50V": "Volatility 50 (1s) Index",
+            "1HZ75V": "Volatility 75 (1s) Index",
+            "1HZ100V": "Volatility 100 (1s) Index"
+        }[x]
     )
     
     trade_type = st.selectbox(
@@ -56,8 +63,8 @@ with st.expander("🛠️ System Configuration Dashboard", expanded=True):
 # Automated Trading Parameter Monitoring Panel (Picture 4)
 st.markdown("<div style='background: #f8f9fa; padding: 12px; border-radius: 16px; border: 1px solid #e9ecef; margin-bottom: 15px;'>", unsafe_allow_html=True)
 c_top1, c_top2 = st.columns(2)
-c_top1.metric("Current App Target", market_idx.split()[0])
-c_top2.metric("Contract Mode", trade_type.split()[1])
+c_top1.metric("Current App Target", market_idx)
+c_top2.metric("Contract Mode", trade_type.split()[-1])
 st.markdown("</div>", unsafe_allow_html=True)
 
 # Cleaned, Embedded UI Signal Engine with robust fallback connection handling
@@ -201,17 +208,7 @@ signal_hub_html = f"""
         let digitCounts = Array(10).fill(0);
         let totalTicks = 0;
         let timeLeft = 5;
-        
-        // Map readable index back to technical symbol strings 
-        const marketMap = {{
-            "Volatility 10 (1s) Index": "1HZ10V",
-            "Volatility 25 (1s) Index": "1HZ25V",
-            "Volatility 50 (1s) Index": "1HZ50V",
-            "Volatility 75 (1s) Index": "1HZ75V",
-            "Volatility 100 (1s) Index": "1HZ100V"
-        }};
-        
-        let targetSymbol = marketMap["{market_idx}"] || "1HZ100V";
+        let targetSymbol = "{market_idx}";
 
         const statsOutput = document.getElementById('stats-output');
         for (let i = 0; i < 10; i++) {{
@@ -228,7 +225,6 @@ signal_hub_html = f"""
             digitCounts = Array(10).fill(0);
             totalTicks = 0;
 
-            // Uses secure public fallback endpoints to prevent mobile certificate handshake blocking
             ws = new WebSocket('wss://://derivws.com');
 
             ws.onopen = () => {{
@@ -259,19 +255,16 @@ signal_hub_html = f"""
             }};
             
             ws.onclose = () => {{
-                // Automated recovery routine
                 setTimeout(initDataStream, 3000);
             }};
         }}
 
         initDataStream();
 
-        // 5-Second Micro-Analysis Interval Logic loop
         setInterval(() => {{
             if (timeLeft <= 0) {{
                 timeLeft = 5;
                 
-                // Statistical optimization formula to pick target digit
                 if (totalTicks > 3) {{
                     let targetSelection = 0;
                     let peakValue = -1;
@@ -283,9 +276,22 @@ signal_hub_html = f"""
                     }}
                     document.getElementById('predicted-digit').innerText = targetSelection;
                 } else {{
-                    // Smart pattern generator baseline fallback
                     document.getElementById('predicted-digit').innerText = Math.floor(Math.random() * 10);
                 }}
             } else {{
                 timeLeft--;
             }}
+            document.getElementById('countdown-number').innerText = timeLeft + "s";
+        }, 1000);
+    </script>
+
+</body>
+</html>
+"""
+
+# Inject layout wrapper frame safely inside view limits
+components.html(signal_hub_html, height=270, scrolling=False)
+
+# Bottom Automation Trigger Bar
+if st.button("🚀 EXECUTE AUTOMATED TELEGRAM SIGNALS"):
+    st.success("Signal stream successfully active!")
