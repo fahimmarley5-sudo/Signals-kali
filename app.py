@@ -78,10 +78,11 @@ trade_type = st.selectbox(
     options=["Digits Matches/Differs", "Digits Even/Odd", "Digits Over/Under"]
 )
 
+# FIXED COLUMN ALLOCATION (TARGETING BY EXPLICIT INDEX TO FIX THE TYPEERROR)
 param_cols = st.columns(2)
-with param_cols:
+with param_cols[0]:
     stake = st.number_input("Stake Amount ($)", min_value=0.35, value=1.00, step=0.50)
-with param_cols:
+with param_cols[1]:
     prediction = st.number_input("Last Digit Target", min_value=0, max_value=9, value=5, step=1)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -151,10 +152,11 @@ if run_btn:
             chart_data = pd.DataFrame(list(counts.values()), index=[str(d) for d in range(10)], columns=["Count"])
             st.bar_chart(chart_data, height=130, use_container_width=True)
             
-            c1, c2 = st.columns(2)
-            with c1:
+            # FIXED SUB-COLUMNS ASSIGNMENT FOR THE FREQUENCY STATS BADGES
+            badge_cols = st.columns(2)
+            with badge_cols[0]:
                 st.markdown(f"<div class='stat-badge' style='background-color:#EF4444;'>🔥 Hot (Matches): Digit {hot_digit}</div>", unsafe_allow_html=True)
-            with c2:
+            with badge_cols[1]:
                 st.markdown(f"<div class='stat-badge' style='background-color:#3B82F6;'>❄️ Cold (Differs): Digit {cold_digit}</div>", unsafe_allow_html=True)
         
         win_rate = random.randint(52, 94)
