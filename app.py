@@ -209,8 +209,8 @@ signal_hub_html = """
         let totalTicks = 0;
         let timeLeft = 5;
         
-        // Grab the value dynamically injected from python window location hash
-        let targetSymbol = window.location.hash.replace('#', '') || "1HZ100V";
+        // Grab the variable directly injected from python configuration variable below
+        let targetSymbol = "REPLACE_TARGET_SYMBOL";
 
         const statsOutput = document.getElementById('stats-output');
         for (let i = 0; i < 10; i++) {
@@ -253,11 +253,11 @@ signal_hub_html = """
             };
 
             ws.onerror = () => {
-                document.getElementById('price-display').innerHTML = "<span style='font-size:1.2rem; color:#888;'>Data stream sync active...</span>";
+                document.getElementById('price-display').innerHTML = "<span style='font-size:1.2rem; color:#888;'>Reconnecting Data Stream...</span>";
             };
             
             ws.onclose = () => {
-                setTimeout(initDataStream, 3000);
+                setTimeout(initDataStream, 2000);
             };
         }
 
@@ -291,8 +291,8 @@ signal_hub_html = """
 </html>
 """
 
-# Append the market parameter via clean window reference routing link
-embedded_html = signal_hub_html.replace("window.location.hash.replace('#', '')", f"'{market_idx}'")
+# FIXED ROUTING ALIGNMENT LINK
+embedded_html = signal_hub_html.replace("REPLACE_TARGET_SYMBOL", market_idx)
 
 # Inject layout wrapper frame safely inside view limits
 components.html(embedded_html, height=270, scrolling=False)
