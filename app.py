@@ -1,95 +1,232 @@
 import streamlit as st
+import asyncio
+import json
+import websockets
 import pandas as pd
 import numpy as np
-import plotly.express as px
 import time
 
-# 1. Page Configuration for Mobile Views
-st.set_page_config(page_title="VIX Expert Board", page_icon="📈", layout="wide")
+# 1. Page Configuration for Mobile and Web Views
+st.set_page_config(
+    page_title="Expert Analysis Tool", 
+    page_icon="📈", 
+    layout="centered"
+)
 
+# 2. Embedded Custom Styling matching the Mobile App UI
 st.markdown("""
 <style>
-    .title { font-size: 26px; font-weight: bold; color: #1E3A8A; text-align: center; }
-    .card { background-color: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 10px; }
-    .signal-buy { color: #16A34A; font-weight: bold; font-size: 20px; }
-    .signal-sell { color: #DC2626; font-weight: bold; font-size: 20px; }
+    .stApp {
+        background-color: #F8FAFC;
+    }
+    .title { 
+        font-size: 28px; 
+        font-weight: 800; 
+        color: #0F172A; 
+        text-align: center;
+        line-height: 1.3;
+        margin-bottom: 5px;
+    }
+    .highlight-text {
+        color: #10B981;
+    }
+    .description {
+        color: #64748B;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 25px;
+        line-height: 1.5;
+    }
+    .hud-card { 
+        background-color: #0F172A; 
+        padding: 24px; 
+        border-radius: 20px; 
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        color: #FFFFFF;
+        margin-bottom: 20px;
+    }
+    .hud-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #1E293B;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+    }
+    .hud-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94A3B8;
+        font-weight: 600;
+    }
+    .hud-value-price {
+        font-family: monospace;
+        font-size: 20px;
+        color: #34D399;
+        font-weight: 700;
+    }
+    .hud-value-digit {
+        font-size: 24px;
+        color: #F59E0B;
+        font-weight: 900;
+    }
+    .win-rate-container {
+        text-align: center;
+        padding-top: 8px;
+    }
+    .win-rate-pct {
+        font-size: 52px;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+    }
+    .win-rate-sign {
+        font-size: 30px;
+        color: #34D399;
+    }
+    .signal-badge-call {
+        background-color: #10B981;
+        color: white;
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.05em;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    .signal-badge-put {
+        background-color: #EF4444;
+        color: white;
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.05em;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    .signal-badge-neutral {
+        background-color: #334155;
+        color: #94A3B8;
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    .btn-primary {
+        background-color: #10B981;
+        color: white;
+        text-align: center;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        margin-top: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    .btn-secondary {
+        color: #64748B;
+        text-align: center;
+        padding: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 5px;
+        cursor: pointer;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="title">📊 Volatility Index & Digit Matching Board</div>', unsafe_allow_html=True)
-st.write("---")
+# 3. Micro-Window Calculation Algorithm
+def process_expert_signals(ticks_list):
+    if len(ticks_list) < 5:
+        return {"win_rate": 50, "signal": "NEUTRAL", "last_digit": 0, "bias": "NEUTRAL"}
+    
+    last_ticks = ticks_list[-5:]
+    gains = sum(1 for i in range(1, len(last_ticks)) if last_ticks[i] > last_ticks[i-1])
+    
+    win_rate = 50 + (gains * 11) - ((4 - gains) * 9)
+    win_rate = max(35, min(94, win_rate))
+    
+    last_price_str = str(last_ticks[-1])
+    last_digit = int(last_price_str[-1]) if last_price_str else 0
+    
+    bias = "OVER" if last_digit > 4 else "UNDER"
+    if win_rate > 65:
+        signal = "CALL"
+    elif win_rate < 45:
+        signal = "PUT"
+        win_rate = 100 - win_rate
+    else:
+        signal = "NEUTRAL"
+        
+    return {"win_rate": win_rate, "signal": signal, "last_digit": last_digit, "bias": bias}
 
-# 2. Sidebar Configuration
-with st.sidebar:
-    st.header("⚡ Index Controls")
-    selected_index = st.selectbox("Choose Volatility Index", ["VIX (Standard)", "Vol Index 75 (V75)", "Vol Index 100 (V100)"])
-    sample_ticks = st.slider("Tick Analysis Depth", 50, 500, 100)
-    refresh_button = st.button("🔄 Recalculate Live Matching Data")
+# 4. Asynchronous Deriv WebSocket Feed Bridge
+async def fetch_deriv_tick():
+    uri = "wss://://derivws.com" 
+    try:
+        async with websockets.connect(uri) as websocket:
+            subscribe_query = {"ticks": "R_100"}
+            await websocket.send(json.dumps(subscribe_query))
+            
+            response = await websocket.recv()
+            data = json.loads(response)
+            if "tick" in data:
+                return data["tick"]["quote"]
+    except Exception:
+        pass
+    return None
 
-# 3. Simulated Live Stream Data Generation
-# In production, connect this to a WebSocket API like Deriv or Binance
-np.random.seed(int(time.time()))
-base_price = {"VIX (Standard)": 18.50, "Vol Index 75 (V75)": 245000.00, "Vol Index 100 (V100)": 4200.00}[selected_index]
-volatility = {"VIX (Standard)": 0.05, "Vol Index 75 (V75)": 15.00, "Vol Index 100 (V100)": 1.20)[selected_index]
+if "price_history" not in st.session_state:
+    st.session_state.price_history = [1000.00]
 
-prices = [base_price]
-for _ in range(sample_ticks - 1):
-    prices.append(prices[-1] + np.random.normal(0, volatility))
+# 5. Core Interface Layout Structure
+st.markdown('<div class="title">Trade binary digits with <span class="highlight-text">live win-rate signals</span></div>', unsafe_allow_html=True)
+st.markdown('<div class="description">Expert Analysis Tool tracking deep real-time synthetic data indices and algorithmic match parameters.</div>', unsafe_allow_html=True)
 
-df = pd.DataFrame({"Tick": range(1, sample_ticks + 1), "Price": prices})
-df["Price"] = df["Price"].round(4)
+hud_placeholder = st.empty()
 
-# Extract Last Digit for Digit Matching Analysis
-df["Last_Digit"] = df["Price"].apply(lambda x: int(str(x)[-1]) if str(x)[-1].isdigit() else 0)
+st.markdown('<div class="btn-primary">Get Started</div>', unsafe_allow_html=True)
+st.markdown('<div class="btn-secondary">View Pricing</div>', unsafe_allow_html=True)
 
-# 4. Expert Analytics Calculations
-last_price = df["Price"].iloc[-1]
-price_change = last_price - df["Price"].iloc[-2]
-digit_counts = df["Last_Digit"].value_index().reindex(range(10), fill_value=0)
-most_frequent_digit = digit_counts.idxmax()
-digit_match_percentage = (digit_counts.max() / sample_ticks) * 100
-
-# Simple Expert AI Signal Logic
-rsi_sim = np.random.uniform(30, 70)
-if rsi_sim > 60:
-    signal = "🔴 STRONG OVERBOUGHT (SELLER MATCH)"
-    class_name = "signal-sell"
-elif rsi_sim < 40:
-    signal = "🟢 STRONG OVERSOLD (BUYER MATCH)"
-    class_name = "signal-buy"
-else:
-    signal = "🟡 NEUTRAL RANGE"
-    class_name = "text-align:center;"
-
-# 5. Dashboard Grid Setup (Mobile Stack View)
-st.subheader("🎯 Real-Time Board Metrics")
-col1, col2 = st.columns(2)
-
-with col1:
-    st.metric(label=f"Current {selected_index} Price", value=f"{last_price:,.4f}", delta=f"{price_change:,.4f}")
-with col2:
-    st.markdown(f'<div class="card">Current Engine Signal:<br><span class="{class_name}">{signal}</span></div>', unsafe_allow_html=True)
-
-st.write("---")
-st.subheader("🔢 Digit Match Frequency Array")
-st.write("Tracks the mathematical repeating probability of trailing decimal numbers across ticks:")
-
-# Create a clean responsive bar chart for matching digits
-fig_digits = px.bar(
-    x=digit_counts.index, 
-    y=digit_counts.values, 
-    labels={'x': 'Decimal Digit (0-9)', 'y': 'Occurrences Count'},
-    color=digit_counts.values,
-    color_continuous_scale="Viridis"
-)
-fig_digits.update_layout(height=300, margin=dict(l=20, r=20, t=20, b=20))
-st.plotly_chart(fig_digits, use_container_width=True)
-
-st.info(f"💡 **Expert Board Insight:** Digit **{most_frequent_digit}** currently shows the highest matching cluster density, appearing in **{digit_match_percentage:.1f}%** of parsed tick trends.")
-
-st.write("### 📈 Visual Micro-Trend Stream")
-fig_trend = px.line(df, x="Tick", y="Price", title=f"{selected_index} Live Analytical Velocity")
-fig_trend.update_layout(height=300)
-st.plotly_chart(fig_trend, use_container_width=True)
-
-
+# 6. Real-Time High Frequency Live Update Loop
+while True:
+    current_tick = asyncio.run(fetch_deriv_tick())
+    
+    if current_tick is not None:
+        st.session_state.price_history.append(current_tick)
+        if len(st.session_state.price_history) > 30:
+            st.session_state.price_history.pop(0)
+            
+        metrics = process_expert_signals(st.session_state.price_history)
+        
+        badge_class = "signal-badge-neutral"
+        if metrics["signal"] == "CALL":
+            badge_class = "signal-badge-call"
+        elif metrics["signal"] == "PUT":
+            badge_class = "signal-badge-put"
+            
+        hud_placeholder.markdown(f"""
+        <div class="hud-card">
+            <div class="hud-row">
+                <div class="hud-label">Active Market Price</div>
+                <div class="hud-value-price">{current_tick:.2f}</div>
+            </div>
+            <div class="hud-row">
+                <div class="hud-label">Last Digit Analyzed</div>
+                <div class="hud-value-digit">{metrics["last_digit"]}</div>
+            </div>
+            <div class="win-rate-container">
+                <div class="hud-label" style="margin-bottom: 5px;">Algorithmic Win Probability</div>
+                <div class="win-rate-pct">{metrics["win_rate"]}<span class="win-rate-sign">%</span></div>
+            </div>
+            <div class="{badge_class}">
+                EXECUTION SIGNAL: {metrics["signal"]} ({metrics["bias"]})
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    time.sleep(0.3)
