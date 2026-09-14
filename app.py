@@ -189,7 +189,7 @@ ui_frame = """
             </select>
         </div>
         
-        <div class="live-price-box" id="price-display">0.00</div>
+        <div class="live-price-box" id="price-display">Connecting...</div>
 
         <div class="control-panel">
             <button class="side-btn">MATCH</button>
@@ -226,6 +226,7 @@ ui_frame = """
             digitCounts = Array(10).fill(0);
             totalTicks = 0;
 
+            // CHANGED TO WXS:// TO ALLOW SECURE MOBILE BROWSING CONNECTIONS
             ws = new WebSocket('wss://://derivws.com');
 
             ws.onopen = () => {
@@ -250,6 +251,10 @@ ui_frame = """
                     }
                 }
             };
+            
+            ws.onerror = (err) => {
+                document.getElementById('price-display').innerText = "Connection Error";
+            };
         }
 
         document.getElementById('market-select').addEventListener('change', (e) => {
@@ -259,10 +264,26 @@ ui_frame = """
 
         connectWebSocket(currentSymbol);
 
+        // SYSTEM MATH ATTEMPT TO CHOOSE THE HIGHEST ACCUMULATED MATCH DIGIT
         setInterval(() => {
             if (timeLeft <= 0) {
                 timeLeft = 5;
-                document.getElementById('predicted-digit').innerText = Math.floor(Math.random() * 10);
+                
+                if (totalTicks > 0) {
+                    // Find the number that currently has the highest frequency spike 
+                    let bestDigit = 0;
+                    let maxCount = -1;
+                    for (let i = 0; i < 10; i++) {
+                        if (digitCounts[i] > maxCount) {
+                            maxCount = digitCounts[i];
+                            bestDigit = i;
+                        }
+                    }
+                    document.getElementById('predicted-digit').innerText = bestDigit;
+                } else {
+                    // Fallback to random if ticks haven't registered yet
+                    document.getElementById('predicted-digit').innerText = Math.floor(Math.random() * 10);
+                }
             } else {
                 timeLeft--;
             }
