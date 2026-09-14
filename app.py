@@ -275,5 +275,5 @@ else:
                 };
             }
 
-            initDataStream(""");
+            initDataStream();
 
