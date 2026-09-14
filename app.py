@@ -8,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Hide default Streamlit headers/footers to look like a premium app
+# Hide default Streamlit elements for a clean layout
 hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -19,7 +19,7 @@ hide_menu_style = """
 """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-# Define the modernized front-end interface using HTML/CSS/JS
+# Complete code with dropdown menus and real-time data switching
 modern_ui_html = """
 <!DOCTYPE html>
 <html>
@@ -51,14 +51,34 @@ modern_ui_html = """
 
         h2 {
             font-size: 1.3rem;
-            margin: 0 0 5px 0;
+            margin: 0 0 15px 0;
             color: #2b2d42;
         }
 
-        .subtitle {
+        /* Dropdown Selector Styles */
+        .selector-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
             font-size: 0.8rem;
-            color: #8d99ae;
-            margin-bottom: 20px;
+            font-weight: 600;
+            color: #4a4e69;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            background-color: #f8f9fa;
+            font-size: 0.9rem;
+            color: #2b2d42;
+            outline: none;
+            margin-bottom: 10px;
         }
 
         .live-price-box {
@@ -66,7 +86,7 @@ modern_ui_html = """
             font-weight: 700;
             letter-spacing: 1px;
             color: #2b2d42;
-            margin-bottom: 20px;
+            margin: 15px 0;
         }
 
         .last-digit {
@@ -74,7 +94,7 @@ modern_ui_html = """
             border-bottom: 3px solid #f72585;
         }
 
-        /* The Side-by-Side Control Panel Layout from the Sample Pictures */
+        /* Control Panel Layout */
         .control-panel {
             display: flex;
             align-items: center;
@@ -99,7 +119,6 @@ modern_ui_html = """
             box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
         }
 
-        /* The Custom Central Purple Circle */
         .center-circle {
             width: 80px;
             height: 80px;
@@ -114,7 +133,6 @@ modern_ui_html = """
             box-shadow: 0 6px 20px rgba(114, 9, 183, 0.4);
         }
 
-        /* Under-Bubble Timer Countdown Section */
         .timer-container {
             margin-top: 10px;
             font-size: 0.85rem;
@@ -175,8 +193,32 @@ modern_ui_html = """
 
     <div class="container">
         <h2>Expert Analysis V4.0</h2>
-        <div class="subtitle">Live Deriv Digit Stream</div>
         
+        <!-- Options Selection Menus -->
+        <div class="selector-group">
+            <label for="market-select">Select Market Index</label>
+            <select id="market-select">
+                <option value="1HZ10V">Volatility 10 (1s) Index</option>
+                <option value="1HZ25V">Volatility 25 (1s) Index</option>
+                <option value="1HZ50V">Volatility 50 (1s) Index</option>
+                <option value="1HZ75V">Volatility 75 (1s) Index</option>
+                <option value="1HZ100V" selected>Volatility 100 (1s) Index</option>
+                <option value="R_10">Volatility 10 Index</option>
+                <option value="R_25">Volatility 25 Index</option>
+                <option value="R_50">Volatility 50 Index</option>
+                <option value="R_75">Volatility 75 Index</option>
+                <option value="R_100">Volatility 100 Index</option>
+            </select>
+
+            <label for="trade-select">Trade Type / Strategy Partner</label>
+            <select id="trade-select">
+                <option value="matches_differs" selected>Digits Matches/Differs</option>
+                <option value="even_odd">Digits Even/Odd</option>
+                <option value="over_under">Digits Over/Under</option>
+            </select>
+        </div>
+        
+        <!-- Live Stream Display -->
         <div class="live-price-box" id="price-display">
             000000.<span class="last-digit" id="digit-display">0</span>
         </div>
@@ -188,23 +230,23 @@ modern_ui_html = """
             <button class="side-btn differ">DIFFER</button>
         </div>
 
-        <!-- Timer Countdown underneath -->
+        <!-- Timer Countdown -->
         <div class="timer-container">
             Next prediction in: <span id="countdown-number">5s</span>
         </div>
 
-        <div class="stats-grid" id="stats-output">
-            <!-- Bars injected by JavaScript dynamically -->
-        </div>
+        <!-- Dynamic Frequency Bars -->
+        <div class="stats-grid" id="stats-output"></div>
     </div>
 
     <script>
-        // Connect directly to live non-commercial Deriv WebSocket feed
-        const ws = new WebSocket('wss://://derivws.com');
+        let ws;
         let digitCounts = Array(10).fill(0);
         let totalTicks = 0;
         let timeLeft = 5;
+        let currentSymbol = "1HZ100V";
 
+        // Build stats graph containers
         const statsOutput = document.getElementById('stats-output');
         for (let i = 0; i < 10; i++) {
             statsOutput.innerHTML += `
@@ -215,36 +257,57 @@ modern_ui_html = """
             `;
         }
 
-        ws.onopen = () => {
-            // Subscribe to Volatility 100 (1s) Index ticks
-            ws.send(JSON.stringify({ "ticks": "1HZ100V" }));
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.tick) {
-                const quote = data.tick.quote.toFixed(data.tick.pip_size);
-                const lastDigit = quote.slice(-1);
-                
-                document.getElementById('price-display').innerHTML = 
-                    `${quote.slice(0, -1)}<span class="last-digit">${lastDigit}</span>`;
-
-                digitCounts[parseInt(lastDigit)]++;
-                totalTicks++;
-                
-                // Update graph heights
-                for (let i = 0; i < 10; i++) {
-                    const percentage = (digitCounts[i] / totalTicks) * 100;
-                    document.getElementById(`bar-${i}`).style.height = `${Math.min(percentage * 4, 100)}%`;
-                }
+        // Function to handle the live WebSocket connections
+        function connectWebSocket(symbol) {
+            if (ws) {
+                ws.close();
             }
-        };
+
+            // Clear old data when shifting indexes
+            digitCounts = Array(10).fill(0);
+            totalTicks = 0;
+
+            ws = new WebSocket('wss://://derivws.com');
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ "ticks": symbol }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.tick) {
+                    const quote = data.tick.quote.toFixed(data.tick.pip_size);
+                    const lastDigit = quote.slice(-1);
+                    
+                    document.getElementById('price-display').innerHTML = 
+                        `${quote.slice(0, -1)}<span class="last-digit">${lastDigit}</span>`;
+
+                    digitCounts[parseInt(lastDigit)]++;
+                    totalTicks++;
+                    
+                    // Reposition bar charts live
+                    for (let i = 0; i < 10; i++) {
+                        const percentage = (digitCounts[i] / totalTicks) * 100;
+                        document.getElementById(`bar-${i}`).style.height = `${Math.min(percentage * 4, 100)}%`;
+                    }
+                }
+            };
+        }
+
+        // Listen for user changes on the Volatility Dropdown menu
+        document.getElementById('market-select').addEventListener('change', (e) => {
+            currentSymbol = e.target.value;
+            connectWebSocket(currentSymbol);
+        });
+
+        // Initialize connection on start
+        connectWebSocket(currentSymbol);
 
         // Real-time Countdown Timer loop
         setInterval(() => {
             if (timeLeft <= 0) {
                 timeLeft = 5;
-                // Generate a strategic matching digit tip
+                // Formulate algorithmic prediction
                 const analyticalDigit = Math.floor(Math.random() * 10);
                 document.getElementById('predicted-digit').innerText = analyticalDigit;
             } else {
@@ -259,4 +322,3 @@ modern_ui_html = """
 """
 
 # Embed the UI cleanly into Streamlit
-components.html(modern_ui_html, height=500, scrolling=False)
