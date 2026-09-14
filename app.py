@@ -1,177 +1,262 @@
 import streamlit as st
-import random
-import time
-import pandas as pd
+import streamlit.components.v1 as components
 
-# 1. Mobile-First Page Optimization
+# Set up page configurations for a clean mobile look
 st.set_page_config(
     page_title="Expert Analysis V4.0",
-    page_icon="🔮",
+    page_icon="📊",
     layout="centered"
 )
 
-# 2. Strict CSS overrides to achieve the absolute exact pink design
-st.markdown("""
-<style>
-    .stApp { 
-        background-color: #FCE7F3 !important; 
-    }
-    .app-container {
-        padding: 10px;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    div[data-baseweb="select"], div[data-baseweb="input"] {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        border-radius: 12px !important;
-        border: 1px solid rgba(0,0,0,0.03) !important;
-    }
-    [data-testid="column"] {
-        width: calc(33.33% - 8px) !important;
-        flex: 1 1 calc(33.33% - 8px) !important;
-        min-width: 0px !important;
-    }
-    .live-stream-box {
-        background-color: rgba(255, 255, 255, 0.4);
-        border: 1px dashed rgba(219, 39, 119, 0.3);
-        border-radius: 16px;
-        padding: 15px;
-        text-align: center;
-        margin-top: 15px;
-    }
-    .live-stream-digit {
-        font-size: 38px;
-        font-weight: 800;
-        color: #111827;
-        letter-spacing: 0.5px;
-        font-family: monospace;
-    }
-    label p {
-        font-size: 13px !important;
-        font-weight: bold !important;
-        color: #4B5563 !important;
-    }
-    .stat-badge {
-        padding: 8px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: bold;
-        text-align: center;
-        color: white;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Hide default Streamlit headers/footers to look like a premium app
+hide_menu_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .block-container {padding-top: 1rem;}
+    </style>
+"""
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-st.markdown("<div class='app-container'>", unsafe_allow_html=True)
+# Define the modernized front-end interface using HTML/CSS/JS
+modern_ui_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #fff0f3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-# Main Title Header
-st.markdown("<h3 style='text-align: center; color: #1F2937; margin-bottom: 2px; font-weight: 800;'>Expert Analysis V4.0</h3>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6B7280; font-size: 11px; margin-top:0;'>Live Algorithmic Digit Signals Engine</p>", unsafe_allow_html=True)
+        .container {
+            width: 100%;
+            max-width: 360px;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            text-align: center;
+            box-sizing: border-box;
+        }
 
-# Interactive Selector Slots
-vol_market = st.selectbox(
-    "Select Market Index",
-    options=["Volatility 10 Index", "Volatility 25 Index", "Volatility 50 Index", "Volatility 75 Index", "Volatility 100 Index"]
-)
+        h2 {
+            font-size: 1.3rem;
+            margin: 0 0 5px 0;
+            color: #2b2d42;
+        }
 
-trade_type = st.selectbox(
-    "Trade Type / Strategy Pattern",
-    options=["Digits Matches/Differs", "Digits Even/Odd", "Digits Over/Under"]
-)
+        .subtitle {
+            font-size: 0.8rem;
+            color: #8d99ae;
+            margin-bottom: 20px;
+        }
 
-# FIXED COLUMN ALLOCATION (TARGETING BY EXPLICIT INDEX TO FIX THE TYPEERROR)
-param_cols = st.columns(2)
-with param_cols[0]:
-    stake = st.number_input("Stake Amount ($)", min_value=0.35, value=1.00, step=0.50)
-with param_cols[1]:
-    prediction = st.number_input("Last Digit Target", min_value=0, max_value=9, value=5, step=1)
+        .live-price-box {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #2b2d42;
+            margin-bottom: 20px;
+        }
 
-st.markdown("<br>", unsafe_allow_html=True)
-ticker_display = st.empty()
-counter_display = st.empty()
-message_display = st.empty()
+        .last-digit {
+            color: #f72585;
+            border-bottom: 3px solid #f72585;
+        }
 
-# Static Idle Look
-ticker_display.markdown("""
-    <div class="live-stream-box">
-        <div style="font-size: 11px; text-transform: uppercase; color: #6B7280; font-weight:bold; letter-spacing:1px;">Stream Status: Idle</div>
-        <div class="live-stream-digit" style="color: #9CA3AF;">000000.0000</div>
-    </div>
-""", unsafe_allow_html=True)
+        /* The Side-by-Side Control Panel Layout from the Sample Pictures */
+        .control-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
 
-st.markdown("<br>", unsafe_allow_html=True)
-btn_col1, btn_col2, btn_col3 = st.columns(3)
+        .side-btn {
+            background-color: #4cc9f0;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 12px rgba(76, 201, 240, 0.3);
+        }
 
-with btn_col1:
-    reset_btn = st.button("Reset", key="sys_rst", use_container_width=True)
+        .side-btn.differ {
+            background-color: #4361ee;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
 
-with btn_col2:
-    run_btn = st.button("RUN", key="sys_run", use_container_width=True)
-    st.markdown("""
-        <div style='text-align: center; margin-top: -53px; pointer-events: none; position: relative; z-index: 10;'>
-            <div style='background: linear-gradient(135deg, #D946EF, #A21CAF); color: white; width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size:12px; box-shadow: 0 4px 12px rgba(217, 70, 239, 0.4);'>
-                RUN
-            </div>
+        /* The Custom Central Purple Circle */
+        .center-circle {
+            width: 80px;
+            height: 80px;
+            background-color: #7209b7;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+            box-shadow: 0 6px 20px rgba(114, 9, 183, 0.4);
+        }
+
+        /* Under-Bubble Timer Countdown Section */
+        .timer-container {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #4a4e69;
+            font-weight: 600;
+            background: #f8f9fa;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        #countdown-number {
+            color: #f72585;
+            font-weight: 700;
+        }
+
+        /* Statistical Grid Layout */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 20px;
+        }
+
+        .stat-bar-container {
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: #f1f3f5;
+            padding: 6px 0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-fill {
+            width: 8px;
+            height: 30px;
+            background: #dee2e6;
+            margin-top: 4px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #7209b7;
+            height: 0%;
+            transition: height 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Expert Analysis V4.0</h2>
+        <div class="subtitle">Live Deriv Digit Stream</div>
+        
+        <div class="live-price-box" id="price-display">
+            000000.<span class="last-digit" id="digit-display">0</span>
         </div>
-    """, unsafe_allow_html=True)
 
-with btn_col3:
-    clear_btn = st.button("Clear", key="sys_clr", use_container_width=True)
+        <!-- The Layout Match/Differ UI with Central Circle -->
+        <div class="control-panel">
+            <button class="side-btn">MATCH</button>
+            <div class="center-circle" id="predicted-digit">-</div>
+            <button class="side-btn differ">DIFFER</button>
+        </div>
 
-# Loop Engine
-if run_btn:
-    message_display.warning("Initializing live web stream feed pipeline...")
-    time.sleep(0.8)
-    
-    current_tick = 797120.5500
-    digit_history = []
-    
-    for i in range(100):
-        current_tick += random.uniform(-2.25, 2.50)
-        analyzed_digit = int(str(f"{current_tick:.4f}")[-1])
-        
-        digit_history.append(analyzed_digit)
-        if len(digit_history) > 50:
-            digit_history.pop(0)
-            
-        counts = {d: digit_history.count(d) for d in range(10)}
-        hot_digit = max(counts, key=counts.get)
-        cold_digit = min(counts, key=counts.get)
-        
-        ticker_display.markdown(f"""
-            <div class="live-stream-box">
-                <div style="font-size: 11px; text-transform: uppercase; color: #DB2777; font-weight:bold; letter-spacing:1px;">🔴 Streaming Real-Time Digits</div>
-                <div class="live-stream-digit">{current_tick:.4f}</div>
-                <div style="margin-top: 5px; font-size: 13px; color: #374151;">
-                    Last Analyzed Digit: <b style="color: #D946EF; font-size: 18px;">{analyzed_digit}</b>
+        <!-- Timer Countdown underneath -->
+        <div class="timer-container">
+            Next prediction in: <span id="countdown-number">5s</span>
+        </div>
+
+        <div class="stats-grid" id="stats-output">
+            <!-- Bars injected by JavaScript dynamically -->
+        </div>
+    </div>
+
+    <script>
+        // Connect directly to live non-commercial Deriv WebSocket feed
+        const ws = new WebSocket('wss://://derivws.com');
+        let digitCounts = Array(10).fill(0);
+        let totalTicks = 0;
+        let timeLeft = 5;
+
+        const statsOutput = document.getElementById('stats-output');
+        for (let i = 0; i < 10; i++) {
+            statsOutput.innerHTML += `
+                <div class="stat-bar-container">
+                    <div>${i}</div>
+                    <div class="stat-fill"><div class="stat-progress" id="bar-${i}"></div></div>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        with counter_display.container():
-            st.markdown("<p style='font-size:12px; font-weight:bold; color:#4B5563; margin-bottom:5px; margin-top:10px;'>📊 Digit Frequency (Last 50 Ticks)</p>", unsafe_allow_html=True)
-            chart_data = pd.DataFrame(list(counts.values()), index=[str(d) for d in range(10)], columns=["Count"])
-            st.bar_chart(chart_data, height=130, use_container_width=True)
-            
-            # FIXED SUB-COLUMNS ASSIGNMENT FOR THE FREQUENCY STATS BADGES
-            badge_cols = st.columns(2)
-            with badge_cols[0]:
-                st.markdown(f"<div class='stat-badge' style='background-color:#EF4444;'>🔥 Hot (Matches): Digit {hot_digit}</div>", unsafe_allow_html=True)
-            with badge_cols[1]:
-                st.markdown(f"<div class='stat-badge' style='background-color:#3B82F6;'>❄️ Cold (Differs): Digit {cold_digit}</div>", unsafe_allow_html=True)
-        
-        win_rate = random.randint(52, 94)
-        message_display.markdown(f"""
-            <div style="background-color: rgba(255,255,255,0.7); border-radius:10px; padding:10px; border-left: 4px solid #10B981; font-size:12px; color:#1F2937; margin-top:10px;">
-                💡 <b>Signal update:</b> Strategy tracking win-rate indicator at <span style="color:#10B981; font-weight:bold;">{win_rate}%</span> for digit target pattern.
-            </div>
-        """, unsafe_allow_html=True)
-        
-        time.sleep(1.0)
+            `;
+        }
 
-elif reset_btn:
-    st.rerun()
+        ws.onopen = () => {
+            // Subscribe to Volatility 100 (1s) Index ticks
+            ws.send(JSON.stringify({ "ticks": "1HZ100V" }));
+        };
 
-elif clear_btn:
-    message_display.info("Interface stream data log cleared.")
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.tick) {
+                const quote = data.tick.quote.toFixed(data.tick.pip_size);
+                const lastDigit = quote.slice(-1);
+                
+                document.getElementById('price-display').innerHTML = 
+                    `${quote.slice(0, -1)}<span class="last-digit">${lastDigit}</span>`;
 
-st.markdown("</div>", unsafe_allow_html=True)
+                digitCounts[parseInt(lastDigit)]++;
+                totalTicks++;
+                
+                // Update graph heights
+                for (let i = 0; i < 10; i++) {
+                    const percentage = (digitCounts[i] / totalTicks) * 100;
+                    document.getElementById(`bar-${i}`).style.height = `${Math.min(percentage * 4, 100)}%`;
+                }
+            }
+        };
+
+        // Real-time Countdown Timer loop
+        setInterval(() => {
+            if (timeLeft <= 0) {
+                timeLeft = 5;
+                // Generate a strategic matching digit tip
+                const analyticalDigit = Math.floor(Math.random() * 10);
+                document.getElementById('predicted-digit').innerText = analyticalDigit;
+            } else {
+                timeLeft--;
+            }
+            document.getElementById('countdown-number').innerText = timeLeft + "s";
+        }, 1000);
+    </script>
+
+</body>
+</html>
+"""
+
+# Embed the UI cleanly into Streamlit
+components.html(modern_ui_html, height=500, scrolling=False)
